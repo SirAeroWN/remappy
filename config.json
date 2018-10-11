@@ -1,0 +1,9 @@
+{
+	"maps": [
+		{
+			"input": "1",
+			"short": "ctrl+c",
+			"macro": "\\Cc"
+		}
+	]
+}
