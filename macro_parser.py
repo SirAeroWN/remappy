@@ -22,22 +22,31 @@ mod_converter = {
     'meta': 'LEFTMETA',
     'lmeta': 'LEFTMETA',
     'rmeta': 'RIGHTMETA',
+    'super': 'LEFTMETA',
     'shift': 'LEFTSHIFT',
     'lshift': 'LEFTSHIFT',
-    'rshift': 'RIGHTSHIFT',
-    }
+    'rshift': 'RIGHTSHIFT'
+}
 mod_keys = list(mod_converter.keys())
+
+special_converter = {
+    'enter': 'ENTER',
+    'return': 'ENTER',
+    'up': 'UP',
+    'right': 'RIGHT',
+    'down': 'DOWN',
+    'left': 'LEFT'
+}
+special_keys = list(special_converter.keys())
 
 
 class Lexer():
     def __init__(self):
         self.tokens = []
 
-
     def __iter__(self):
         self.i = 0
         return self
-
 
     def __next__(self):
         if self.i < len(self.tokens):
@@ -47,15 +56,14 @@ class Lexer():
         else:
             raise StopIteration
 
-
     def __repr__(self):
         return str(self.tokens)
+
 
 class Short_Lexer(Lexer):
     def __init__(self, in_str):
         super().__init__()
         self.tokens = self.digest(in_str)
-
 
     def digest(self, in_str):
         token_strs = in_str.split('+')
@@ -66,7 +74,6 @@ class Macro_Lexer(Lexer):
     def __init__(self, in_str):
         super().__init__()
         self.tokens = self.digest(in_str)
-
 
     def digest(self, in_str):
         token_strs = []
@@ -79,7 +86,7 @@ class Macro_Lexer(Lexer):
                 token_strs.append(in_str[i])
                 i += 1
             else:
-                for k,v in mo.groupdict().items():
+                for k, v in mo.groupdict().items():
                     if v is None:
                         continue
                     else:
@@ -89,22 +96,18 @@ class Macro_Lexer(Lexer):
         return token_strs
 
 
-
 class Map_Builder():
     def __init__(self, lexer, mod_keys=mod_keys):
         self.lexer = lexer
         self.commands = []
         self.mod_keys = mod_keys
 
-
     def __repr__(self):
         return str(self.commands)
-
 
     def __iter__(self):
         self.i = 0
         return self
-
 
     def __next__(self):
         if self.i < len(self.commands):
@@ -113,7 +116,6 @@ class Map_Builder():
             return result
         else:
             raise StopIteration
-
 
     def build(self):
         mods = []
@@ -127,6 +129,8 @@ class Map_Builder():
                 self.commands.append((token, 'up'))
                 while len(mods) > 0:
                     self.commands.append(mods.pop())
+        while len(mods) > 0:
+            self.commands.append(mods.pop())
 
 
 class Converter():
@@ -138,15 +142,12 @@ class Converter():
         self.mod_keys = mod_keys
         self.mod_converter = mod_converter
 
-
     def __repr__(self):
         return '\n'.join(self.commands)
-
 
     def __iter__(self):
         self.i = 0
         return self
-
 
     def __next__(self):
         if self.i < len(self.commands):
@@ -156,13 +157,14 @@ class Converter():
         else:
             raise StopIteration
 
-
     def convert(self):
         self.builder.build()
         for c in self.builder:
             cmd_string = self.uinput_name + '.write(' + self.ecodes_name + '.EV_KEY, ' + self.ecodes_name + '.KEY_'
-            if c[0] in mod_keys:
-                cmd_string += mod_converter.get(c[0])
+            if c[0].lower() in mod_keys:
+                cmd_string += mod_converter.get(c[0].lower())
+            elif c[0].lower() in special_keys:
+                cmd_string += special_converter.get(c[0].lower())
             else:
                 cmd_string += c[0].upper()
             cmd_string += ', '
