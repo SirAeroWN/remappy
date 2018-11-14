@@ -1,0 +1,43 @@
+{
+    "maps": [
+        {
+            "input": 92,
+            "short": "tab"
+        },
+        {
+            "input": 35,
+            "layer": 1,
+            "short": "left"
+        },
+        {
+            "input": 94,
+            "layer": 0,
+            "set_layer": "alt 0 1"
+        },
+        {
+            "input": 94,
+            "layer": 1,
+            "set_layer": "alt 0 1"
+        },
+        {
+            "input": 36,
+            "layer": 1,
+            "short": "down"
+        },
+        {
+            "input": 37,
+            "layer": 1,
+            "short": "up"
+        },
+        {
+            "input": 38,
+            "layer": 1,
+            "short": "right"
+        },
+        {
+            "input": 93,
+            "layer": 0,
+            "short": "enter"
+        }
+    ]
+}

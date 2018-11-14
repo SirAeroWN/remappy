@@ -95,18 +95,26 @@ def add_to_config(event, config):
         event = evdev.categorize(event)
         if event.keystate != 1:
             return
-        temp = {'input': event.keycode}
-        s_or_m = input('Short or Macro for keycode %s?[S/M]' % event.keycode).lower()
-        if s_or_m == 's':
+        temp = {'input': event.scancode}
+        layer_number = input('Layer to map scancode %s in? ' % event.scancode).lower().strip()
+        if layer_number == '':
+            layer_number = 0
+        else:
+            layer_number = int(layer_number)
+        mode = input('Short, Macro, or Layer for keycode %s?[S/M/L]' % event.scancode).lower()
+        if mode == 's':
             temp['short'] = input('Short: ')
-        elif s_or_m == 'm':
+        elif mode == 'm':
             temp['macro'] = input('Macro: ')
+        elif mode == 'l':
+            temp['set_layer'] = input('Layer: ')
         else:
             # didn't enter an option, so don't possibly overwrite something
             return
+        temp['layer'] = layer_number
         maps = config.get('maps', [])
         for i, m in enumerate(maps):
-            if m.get('input', '') == temp['input']:
+            if m.get('input', '') == temp['input'] and m.get('layer', 0) == temp['layer']:
                 maps[i] = temp
                 break
         else:

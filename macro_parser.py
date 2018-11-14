@@ -35,7 +35,8 @@ special_converter = {
     'up': 'UP',
     'right': 'RIGHT',
     'down': 'DOWN',
-    'left': 'LEFT'
+    'left': 'LEFT',
+    'tab': 'TAB'
 }
 special_keys = list(special_converter.keys())
 
@@ -96,6 +97,16 @@ class Macro_Lexer(Lexer):
         return token_strs
 
 
+class Layer_Lexer(Lexer):
+    def __init__(self, in_str):
+        super().__init__()
+        self.tokens = self.digest(in_str)
+
+    def digest(self, in_str):
+        token_strs = in_str.split(' ')
+        return token_strs
+
+
 class Map_Builder():
     def __init__(self, lexer, mod_keys=mod_keys):
         self.lexer = lexer
@@ -131,6 +142,43 @@ class Map_Builder():
                     self.commands.append(mods.pop())
         while len(mods) > 0:
             self.commands.append(mods.pop())
+
+
+class Layer_Builder():
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.commands = []
+
+    def __repr__(self):
+        return str(self.commands)
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def __next__(self):
+        if self.i < len(self.commands):
+            result = self.commands[self.i]
+            self.i += 1
+            return result
+        else:
+            raise StopIteration
+
+    def build(self):
+        tokens = list(self.lexer)
+        cmd = tokens[0]
+        self.commands.append('global current_layer')
+        if cmd == 'inc':
+            self.commands.append('current_layer.inc(%s)' % tokens[1])
+        elif cmd == 'dec':
+            self.commands.append('current_layer.dec(%s)' % tokens[1])
+        elif cmd == 'set':
+            self.commands.append('current_layer.set(%s)' % tokens[1])
+        elif cmd == 'alt' or cmd == 'rot':
+            self.commands.append('layers = %s' % ('[' + ', '.join(tokens[1:]) + ']'))
+            self.commands.append('current_layer.rotate(layers)')
+        else:
+            self.commands.append('pass')
 
 
 class Converter():

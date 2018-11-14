@@ -6,7 +6,7 @@ import evdev
 from evdev import UInput, ecodes as e, list_devices, InputDevice
 
 import macro_parser
-from macro_parser import Converter, Map_Builder, Short_Lexer, Macro_Lexer
+from macro_parser import Converter, Map_Builder, Layer_Builder, Layer_Lexer, Short_Lexer, Macro_Lexer
 
 
 fname = 'mappings.json'
@@ -53,8 +53,8 @@ def select_device(device_dir='/dev/input'):
     return choice[0]
 
 
-def make_func_name(in_key):
-    return 'keymap_for_input_' + in_key
+def make_func_name(in_key, layer):
+    return 'keymap_for_input_' + str(in_key) + '_' + str(layer)
 
 
 def get_ecode(inp):
@@ -63,7 +63,7 @@ def get_ecode(inp):
 
 def create_function(keymap):
     # first we'll make the function signature
-    func_sig = 'def ' + make_func_name(keymap.get('input', 'default')) + '(' + macro_parser.names.get('uinput', 'ui') + '):'
+    func_sig = 'def ' + make_func_name(keymap.get('input', 'default'), keymap.get('layer', 0)) + '(' + macro_parser.names.get('uinput', 'ui') + '):'
     # next, we'll make the body of the function
     body = []
     for k, v in keymap.items():
@@ -76,6 +76,11 @@ def create_function(keymap):
             c = Converter(Map_Builder(Macro_Lexer(v)))
             c.convert()
             body = c.commands
+            break
+        elif k == 'set_layer':
+            lb = Layer_Builder(Layer_Lexer(v))
+            lb.build()
+            body = list(lb)
             break
     body.append(macro_parser.names.get('uinput', 'ui') + '.syn()')
     # now combine them into a function
@@ -90,16 +95,19 @@ with open(fname, 'r') as f:
 maps = data.get('maps', [])
 funcs = []
 func_dict = {}
+num_layers = max(maps, key=lambda x: x.get('layer', 0)).get('layer', 0) + 1
+func_list = [{} for i in range(num_layers)]
 for m in maps:
     funcs.append(create_function(m))
     inp = m.get('input', 'default')
-    fnc = make_func_name(inp)
+    fnc = make_func_name(inp, m.get('layer', 0))
     key = get_ecode(inp)
-    func_dict[key] = fnc
+    func_list[m.get('layer', 0)][key] = fnc
 
 # the template
 template = """
 from evdev import ecodes as e
+from layer import Layer
 
 
 %s
@@ -109,15 +117,27 @@ def default(%s):
     print('default')
 
 
+key_list = [%s]
+key_dict_keys = [list(key_dict.keys()) for key_dict in key_list]
+
+
+current_layer = Layer(0, len(key_list), 0)
+
+
 def callback(event, ui):
     # event should already be categorized
-    if event.keystate == 1:
-        print(event.keycode)
-        {%s}[event.keycode](%s)
+    global key_dict
+    global key_dict_keys
+    if event.keystate == 1 and event.scancode in key_dict_keys[current_layer.layer]:
+        # print(event.keycode, event.scancode)
+        key_list[current_layer.layer][event.scancode](%s)
+    else:
+        ui.write_event(event)
+        ui.syn()
 """
 
 func_block = '\n\n'.join(funcs)
-dict_block = ', '.join(['\'' + k + '\': ' + v for k, v in func_dict.items()])
+dict_block = ', '.join(['{' + (', '.join([str(k) + ': ' + str(v) for k, v in func_dict.items()])) + '}' for func_dict in func_list])
 result = template % (func_block, macro_parser.names.get('uinput', 'ui'), dict_block, macro_parser.names.get('uinput', 'ui'))
 print(result)
 
