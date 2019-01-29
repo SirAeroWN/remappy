@@ -36,7 +36,9 @@ special_converter = {
     'right': 'RIGHT',
     'down': 'DOWN',
     'left': 'LEFT',
-    'tab': 'TAB'
+    'tab': 'TAB',
+    '`': 'GRAVE',
+    'del': 'DELETE'
 }
 special_keys = list(special_converter.keys())
 
