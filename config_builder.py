@@ -79,7 +79,7 @@ def main():
 
     # save configs on exit
     atexit.register(save_config, config)
-    print('Listening for events (press ctrl-c to exit) ...')
+    print('Listening for events, changes saved automatically (press ctrl-c to exit) ...')
     fd_to_device = {dev.fd: dev for dev in devices}
     while True:
         r, w, e = select.select(fd_to_device, [], [])
