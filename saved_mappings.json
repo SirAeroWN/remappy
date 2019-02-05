@@ -1,51 +1,63 @@
 {
     "maps": [
         {
-            "input": "KEY_1",
+            "input": 2,
+            "layer": 0,
             "short": "ctrl+c"
         },
         {
-            "input": "KEY_2",
+            "input": 3,
+            "layer": 0,
             "short": "ctrl+v"
         },
         {
-            "input": "KEY_3",
+            "input": 4,
+            "layer": 0,
             "short": "backspace"
         },
         {
-            "input": "KEY_4",
+            "input": 5,
+            "layer": 0,
             "short": "ctrl+x"
         },
         {
-            "input": "KEY_5",
+            "input": 6,
+            "layer": 0,
             "short": "ctrl+s"
         },
         {
-            "input": "KEY_6",
+            "input": 7,
+            "layer": 0,
             "short": "delete"
         },
         {
-            "input": "KEY_7",
+            "input": 8,
+            "layer": 0,
             "short": "ctrl+shift+t"
         },
         {
-            "input": "KEY_8",
+            "input": 9,
+            "layer": 0,
             "short": "ctrl+t"
         },
         {
-            "input": "KEY_9",
+            "input": 10,
+            "layer": 0,
             "short": "ctrl+w"
         },
         {
-            "input": "KEY_0",
+            "input": 11,
+            "layer": 0,
             "short": "super"
         },
         {
-            "input": "KEY_MINUS",
+            "input": 12,
+            "layer": 0,
             "short": "ralt+left"
         },
         {
-            "input": "KEY_EQUAL",
+            "input": 13,
+            "layer": 0,
             "short": "enter"
         }
     ]
