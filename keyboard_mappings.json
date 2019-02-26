@@ -38,6 +38,26 @@
             "input": 93,
             "layer": 0,
             "short": "enter"
+        },
+        {
+            "input": 124,
+            "layer": 0,
+            "short": "`"
+        },
+        {
+            "input": 110,
+            "layer": 0,
+            "short": "del"
+        },
+        {
+            "input": 89,
+            "layer": 0,
+            "short": "end"
+        },
+        {
+            "input": 54,
+            "layer": 0,
+            "short": "home"
         }
     ]
 }
