@@ -1,8 +1,31 @@
+"""remappy
+
+Usage:
+  parser.py <config_file>
+
+"""
+# parser.py ship <name> move <x> <y> [--speed=<kn>]
+# parser.py ship shoot <x> <y>
+# parser.py mine (set|remove) <x> <y> [--moored | --drifting]
+# parser.py (-h | --help)
+# parser.py --version
+
+# Options:
+# -h --help     Show this screen.
+# --version     Show version.
+# --speed=<kn>  Speed in knots [default: 10].
+# --moored      Moored (anchored) mine.
+# --drifting    Drifting mine.
+
+# """
+
+
 import re
 import sys
 import json
 import asyncio
 import evdev
+from docopt import docopt
 from evdev import UInput, ecodes as e, list_devices, InputDevice
 
 import macro_parser
@@ -89,23 +112,32 @@ def create_function(keymap):
     return func_str + bld_str
 
 
-with open(fname, 'r') as f:
-    data = json.load(f)
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version='remappy 0.2')
+    print(arguments)
 
-maps = data.get('maps', [])
-funcs = []
-func_dict = {}
-num_layers = max(maps, key=lambda x: x.get('layer', 0)).get('layer', 0) + 1
-func_list = [{} for i in range(num_layers)]
-for m in maps:
-    funcs.append(create_function(m))
-    inp = m.get('input', 'default')
-    fnc = make_func_name(inp, m.get('layer', 0))
-    key = get_ecode(inp)
-    func_list[m.get('layer', 0)][key] = fnc
+    fname = arguments.get('<config_file>', 'mappings.json')
 
-# the template
-template = """
+    # if len(sys.argv) > 2:
+    #     fname = sys.argv[1]
+
+    with open(fname, 'r') as f:
+        data = json.load(f)
+
+    maps = data.get('maps', [])
+    funcs = []
+    func_dict = {}
+    num_layers = max(maps, key=lambda x: x.get('layer', 0)).get('layer', 0) + 1
+    func_list = [{} for i in range(num_layers)]
+    for m in maps:
+        funcs.append(create_function(m))
+        inp = m.get('input', 'default')
+        fnc = make_func_name(inp, m.get('layer', 0))
+        key = get_ecode(inp)
+        func_list[m.get('layer', 0)][key] = fnc
+
+    # the template
+    template = """
 from evdev import ecodes as e
 from layer import Layer
 
@@ -136,37 +168,34 @@ def callback(event, ui):
         ui.syn()
 """
 
-func_block = '\n\n'.join(funcs)
-dict_block = ', '.join(['{' + (', '.join([str(k) + ': ' + str(v) for k, v in func_dict.items()])) + '}' for func_dict in func_list])
-result = template % (func_block, macro_parser.names.get('uinput', 'ui'), dict_block, macro_parser.names.get('uinput', 'ui'))
-print(result)
+    func_block = '\n\n'.join(funcs)
+    dict_block = ', '.join(['{' + (', '.join([str(k) + ': ' + str(v) for k, v in func_dict.items()])) + '}' for func_dict in func_list])
+    result = template % (func_block, macro_parser.names.get('uinput', 'ui'), dict_block, macro_parser.names.get('uinput', 'ui'))
+    # print(result)
 
-with open(out_fname, 'w') as f:
-    f.write(result)
+    with open(out_fname, 'w') as f:
+        f.write(result)
 
-# now load that file
-module = __import__(out_fname[:-3])
-my_class = getattr(module, 'callback')
+    # now load that file
+    module = __import__(out_fname[:-3])
+    my_class = getattr(module, 'callback')
 
+    # dev = evdev.InputDevice('/dev/input/event19')
+    dev = select_device()
+    dev.grab()
+    print(dev)
+    ui = UInput()
 
-# dev = evdev.InputDevice('/dev/input/event19')
-dev = select_device()
-dev.grab()
-print(dev)
-ui = UInput()
+    async def print_events(device):
+        async for event in device.async_read_loop():
+            if event.type == e.EV_KEY:
+                print(evdev.categorize(event).keycode)
+                ke = evdev.categorize(event)
+                my_class(ke, ui)
 
+    asyncio.ensure_future(print_events(dev))
 
-async def print_events(device):
-    async for event in device.async_read_loop():
-        if event.type == e.EV_KEY:
-            print(evdev.categorize(event).keycode)
-            ke = evdev.categorize(event)
-            my_class(ke, ui)
+    loop = asyncio.get_event_loop()
+    loop.run_forever()
 
-
-asyncio.ensure_future(print_events(dev))
-
-loop = asyncio.get_event_loop()
-loop.run_forever()
-
-ui.close()
+    ui.close()
