@@ -1,7 +1,7 @@
 """remappy
 
 Usage:
-  parser.py <config_file>
+  parser.py [<config_file>]
 
 """
 # parser.py ship <name> move <x> <y> [--speed=<kn>]
@@ -116,7 +116,8 @@ if __name__ == '__main__':
     arguments = docopt(__doc__, version='remappy 0.2')
     print(arguments)
 
-    fname = arguments.get('<config_file>', 'mappings.json')
+    config_file = arguments.get('<config_file>', None)
+    fname = 'mappings/mappings.json' if config_file is None else config_file
 
     # if len(sys.argv) > 2:
     #     fname = sys.argv[1]
@@ -139,7 +140,7 @@ if __name__ == '__main__':
     # the template
     template = """
 from evdev import ecodes as e
-from layer import Layer
+from libs.layer import Layer
 
 
 %s
