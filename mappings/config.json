@@ -1,7 +1,7 @@
 {
 	"maps": [
 		{
-			"input": "1",
+			"input": "KEY_1",
 			"short": "ctrl+c",
 			"macro": "\\Cc"
 		}
