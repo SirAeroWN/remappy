@@ -28,11 +28,11 @@ import evdev
 from docopt import docopt
 from evdev import UInput, ecodes as e, list_devices, InputDevice
 
-import macro_parser
-from macro_parser import Converter, Map_Builder, Layer_Builder, Layer_Lexer, Short_Lexer, Macro_Lexer
+import libs.macro_parser as macro_parser
+from libs.macro_parser import Converter, Map_Builder, Layer_Builder, Layer_Lexer, Short_Lexer, Macro_Lexer
 
 
-fname = 'mappings.json'
+fname = 'mappings/mappings.json'
 out_fname = 'compiled.py'
 
 

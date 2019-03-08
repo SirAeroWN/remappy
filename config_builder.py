@@ -72,7 +72,7 @@ def main():
     #     atexit.register(toggle_tty_echo, sys.stdin, enable=False)
 
     try:
-        with open('mappings.json', 'r') as f:
+        with open('mappings/mappings.json', 'r') as f:
             config = json.load(f)
     except FileNotFoundError:
         config = {"maps": []}
@@ -122,7 +122,7 @@ def add_to_config(event, config):
         config['maps'] = maps
 
 
-def save_config(config, fname='mappings.json'):
+def save_config(config, fname='mappings/mappings.json'):
     with open(fname, 'w') as f:
         json.dump(config, f, sort_keys=True, indent=4)
 
