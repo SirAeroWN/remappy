@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # encoding: utf-8
 
 '''
@@ -74,11 +75,14 @@ def main():
     try:
         with open('mappings/mappings.json', 'r') as f:
             config = json.load(f)
+            if config.get('name', None) is None:
+                config['name'] = devices[0].name
     except FileNotFoundError:
-        config = {"maps": []}
+        config = {"maps": [], 'name': devices[0].name}
 
     # save configs on exit
     atexit.register(save_config, config)
+    # print(devices[0])
     print('Listening for events, changes saved automatically (press ctrl-c to exit) ...')
     fd_to_device = {dev.fd: dev for dev in devices}
     while True:

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """remappy
 
 Usage:
@@ -112,6 +114,38 @@ def create_function(keymap):
     return func_str + bld_str
 
 
+def get_device_by_name(name, device_dir='/dev/input'):
+    devices = [InputDevice(path) for path in list_devices(device_dir)]
+    dev = list(filter(lambda d: d.name == name, devices))
+    if len(dev) == 0:
+        return None
+    elif len(dev) > 1:
+        dev_format = '{0:<3} {1.path:<20} {1.name:<35} {1.phys:<35} {1.uniq:<4}'
+        dev_lines = [dev_format.format(num, d) for num, d in enumerate(dev)]
+
+        print('ID  {:<20} {:<35} {:<35} {}'.format('Device', 'Name', 'Phys', 'Uniq'))
+        print('-' * len(max(dev_lines, key=len)))
+        print('\n'.join(dev_lines))
+        print()
+
+        choices = input('Select device [0-%s]: ' % (len(dev_lines) - 1))
+
+        try:
+            choices = dev[int(choices.strip())]
+        except ValueError:
+            choices = None
+
+        if not choices:
+            msg = 'error: invalid input - please enter one or more numbers separated by spaces'
+            print(msg, file=sys.stderr)
+            sys.exit(1)
+
+        return choices
+    else:
+        # dev has just one element
+        return dev[0]
+
+
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='remappy 0.2')
     print(arguments)
@@ -182,7 +216,18 @@ def callback(event, ui):
     my_class = getattr(module, 'callback')
 
     # dev = evdev.InputDevice('/dev/input/event19')
-    dev = select_device()
+    name = data.get('name', None)
+    if name is None:
+        dev = select_device()
+    else:
+        dev = get_device_by_name(name)
+        if dev is None:
+            dev = select_device()
+        else:
+            print(f'Config uses {dev} is this ok [Y/N]?', end=' ')
+            cont = input().strip().lower()
+            if cont not in ['y', 'yes']:
+                dev = select_device()
     dev.grab()
     print(dev)
     ui = UInput()
