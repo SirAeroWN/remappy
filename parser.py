@@ -226,7 +226,8 @@ def callback(event, ui):
         else:
             print(f'Config uses {dev} is this ok [Y/N]?', end=' ')
             cont = input().strip().lower()
-            if cont not in ['y', 'yes']:
+            if cont not in ['y', 'yes', '']:
+                print(ord(cont))
                 dev = select_device()
     dev.grab()
     print(dev)
